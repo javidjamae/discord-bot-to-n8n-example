@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  discord-bot:
+    image: javidjamae/discord-gateway-bot:latest   # use prebuilt image; replace with your own if desired
+    # If you prefer to build locally instead of pulling, comment the image line above and uncomment below:
+    # build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      APPLICATION_ID: ${APPLICATION_ID}
+      GUILD_ID: ${GUILD_ID}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL}
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]  # TODO: replace with a real health check endpoint if you add one
+      interval: 30s
+      timeout: 5s
+      retries: 3
