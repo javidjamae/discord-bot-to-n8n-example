@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# --- Load env from .env if present (does not overwrite existing env) ---
-if [[ -f .env ]]; then
-  # shellcheck disable=SC2046
-  export $(grep -v '^#' .env | xargs -0 -I{} bash -lc 'printf %q "${{}%%=*}"; printf =; printf %q "${{}#*=}"') >/dev/null 2>&1 || true
+# --- Load env from .env if present (exporting vars) ---
+# Resolve script directory so we can load a sibling .env regardless of CWD
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Try script-local .env first, then current working directory as fallback
+if [[ -f "$SCRIPT_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$SCRIPT_DIR/.env"
+  set +a
+  echo "Loaded env from $SCRIPT_DIR/.env" >&2
+elif [[ -f ./.env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source ./.env
+  set +a
+  echo "Loaded env from ./.env" >&2
 fi
 
 # --- Config / Defaults ---
@@ -56,6 +69,14 @@ fi
 need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1" >&2; exit 1; }; }
 need curl
 
+# Quick diagnostics for missing envs
+missing=()
+[[ -z ${DISCORD_TOKEN:-} ]] && missing+=(DISCORD_TOKEN)
+[[ -z ${APPLICATION_ID:-} ]] && missing+=(APPLICATION_ID)
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "Missing required envs: ${missing[*]}" >&2
+fi
+
 if [[ -z "$DISCORD_TOKEN" || -z "$APPLICATION_ID" ]]; then
   echo "ERROR: Set DISCORD_TOKEN and APPLICATION_ID (env or .env)." >&2
   exit 1
@@ -67,7 +88,7 @@ if [[ "$SCOPE" == "guild" && -z "$GUILD_ID_ENV" ]]; then
 fi
 
 # --- Define commands (bulk) ---
-read -r -d '' COMMANDS_JSON <<'JSON'
+COMMANDS_JSON=$(cat <<'JSON'
 [
   {
     "name": "generate-ideas",
@@ -89,6 +110,7 @@ read -r -d '' COMMANDS_JSON <<'JSON'
   }
 ]
 JSON
+)
 
 # --- Choose endpoint ---
 if [[ "$SCOPE" == "guild" ]]; then
@@ -103,7 +125,7 @@ echo "Using endpoint: $ENDPOINT"
 
 # --- Dry-run? ---
 if [[ "$DRY_RUN" -eq 1 ]]; then
-  echo "\nDRY RUN — would PUT the following JSON:"
+  printf "\nDRY RUN — would PUT the following JSON:\n"
   echo "$COMMANDS_JSON" | sed 's/^/  /'
   exit 0
 fi
