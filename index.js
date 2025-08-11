@@ -10,6 +10,17 @@ const {
   NODE_ENV
 } = process.env;
 
+// Ensure required environment variables are present
+const missingEnv = [];
+if (!DISCORD_TOKEN) missingEnv.push("DISCORD_TOKEN");
+if (!APPLICATION_ID) missingEnv.push("APPLICATION_ID");
+if (!N8N_WEBHOOK_URL) missingEnv.push("N8N_WEBHOOK_URL");
+
+if (missingEnv.length) {
+  console.error(`Missing required environment variable(s): ${missingEnv.join(", ")}`);
+  process.exit(1);
+}
+
 // Optional one-time helper to register commands on startup if needed
 async function registerCommands() {
   const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
