@@ -56,7 +56,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await interaction.deferReply({ ephemeral: false });
 
     // Kick off n8n with the context it needs
-    await fetch(N8N_WEBHOOK_URL, {
+    const response = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -81,6 +81,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         }
       })
     });
+
+    if (!response.ok) {
+      console.error(`Webhook request failed: ${response.status} ${response.statusText}`);
+      await interaction.editReply("Sorry, something went wrong triggering the workflow.");
+      return;
+    }
 
     // Option A: let n8n post the final message using your Discord Bot API credential
     // For immediate feedback:
