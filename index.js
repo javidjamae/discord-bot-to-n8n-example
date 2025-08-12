@@ -1,6 +1,7 @@
 // index.js
 import { Client, GatewayIntentBits, Partials, Events, REST, Routes } from "discord.js";
 import fetch from "node-fetch";
+import { checkRequiredEnv } from "./env.js";
 
 const {
   DISCORD_TOKEN,
@@ -11,11 +12,7 @@ const {
 } = process.env;
 
 // Ensure required environment variables are present
-const missingEnv = [];
-if (!DISCORD_TOKEN) missingEnv.push("DISCORD_TOKEN");
-if (!APPLICATION_ID) missingEnv.push("APPLICATION_ID");
-if (!N8N_WEBHOOK_URL) missingEnv.push("N8N_WEBHOOK_URL");
-
+const missingEnv = checkRequiredEnv({ DISCORD_TOKEN, APPLICATION_ID, N8N_WEBHOOK_URL });
 if (missingEnv.length) {
   console.error(`Missing required environment variable(s): ${missingEnv.join(", ")}`);
   process.exit(1);

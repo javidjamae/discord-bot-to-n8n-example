@@ -86,6 +86,16 @@ Whenever you change the command definitions in `index.js`, run `npm run register
 
 ---
 
+## Testing
+
+Run unit tests with:
+
+```bash
+npm test
+```
+
+---
+
 ## One‑command deploy to an existing GCP VM
 
 This keeps everything **version controlled** and avoids SSHing into the instance.

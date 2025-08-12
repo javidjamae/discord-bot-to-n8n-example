@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "register": "NODE_ENV=register node index.js"
+    "register": "NODE_ENV=register node index.js",
+    "test": "node --test"
   }
 }
