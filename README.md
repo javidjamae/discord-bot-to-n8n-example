@@ -22,7 +22,6 @@ A Discord **slash‑command gateway** that forwards requests to an n8n workflow 
 ├── index.js                       # discord gateway → n8n webhook
 ├── package.json
 ├── package-lock.json
-├── register-slash-commands.sh     # helper to register slash commands
 ├── startup.sh                     # VM startup script (installs Docker + runs image)
 ├── deploy.sh                      # one‑command GCP deploy using instance metadata
 ├── .env.example                   # copy → .env and fill in secrets (never commit .env)
@@ -73,16 +72,17 @@ IMAGE_REPO=javidjamae/discord-gateway-bot
 
 ## Register slash commands
 
-From your laptop (not on the VM):
+Use the helper built into `index.js`:
 
 ```bash
-./register-slash-commands.sh \
-  --application-id "$APPLICATION_ID" \
-  --guild-id "$GUILD_ID" \
-  --token "$DISCORD_TOKEN"
+# ensure env vars are set; sourcing .env is one option
+source .env
+npm run register
 ```
 
-(You can also hard‑code the values in the script or source `.env` before running.)
+The script reads `DISCORD_TOKEN`, `APPLICATION_ID`, and optionally `GUILD_ID` from the environment. If `GUILD_ID` is set, the commands register for that guild instantly; otherwise they register globally and may take up to an hour to appear.
+
+Whenever you change the command definitions in `index.js`, run `npm run register` again to push the updates to Discord.
 
 ---
 
